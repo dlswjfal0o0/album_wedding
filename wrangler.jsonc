@@ -1,0 +1,25 @@
+{
+  "name": "weddingalbum",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-18",
+
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "weddingalbum-files"
+    }
+  ],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "weddingalbum-db",
+      "database_id": "여기에-D1-데이터베이스-ID를-붙여넣으세요"
+    }
+  ]
+}
