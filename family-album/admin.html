@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가족 앨범 - 계정 관리</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --paper: #ECE7DD;
+    --card: #FFFFFF;
+    --ink: #2A2A28;
+    --muted: #8A8275;
+    --navy: #2D3142;
+    --navy-light: #424662;
+    --danger: #B5524A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    font-family: 'Pretendard', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(42,38,30,0.18);
+    padding: 32px;
+    width: 100%;
+    max-width: 380px;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; color: var(--navy); }
+  p.sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .field input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid #E3DDCD;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #FBF9F4;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--navy);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  button:hover { background: var(--navy-light); }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .msg { font-size: 13px; margin-top: 14px; min-height: 16px; }
+  .msg.error { color: var(--danger); }
+  .msg.success { color: #3D6B4F; }
+  hr { border: none; border-top: 1px solid #E3DDCD; margin: 22px 0; }
+  .hint { font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>가족 계정 만들기</h1>
+    <p class="sub">관리자만 사용하는 페이지입니다. 이 주소는 가족에게 공유하지 마세요.</p>
+
+    <form id="create-form">
+      <div class="field">
+        <label for="setup-key">관리자 키 (Cloudflare 환경변수 ADMIN_SETUP_KEY)</label>
+        <input type="password" id="setup-key" required>
+      </div>
+      <hr style="margin:14px 0;">
+      <div class="field">
+        <label for="username">아이디 (영문/숫자)</label>
+        <input type="text" id="username" required>
+      </div>
+      <div class="field">
+        <label for="display-name">표시 이름 (예: 엄마, 아빠, 첫째)</label>
+        <input type="text" id="display-name" required>
+      </div>
+      <div class="field">
+        <label for="password">비밀번호 (4자 이상)</label>
+        <input type="text" id="password" required>
+      </div>
+      <button type="submit" id="submit-btn">계정 만들기</button>
+      <div class="msg" id="msg"></div>
+    </form>
+
+    <hr>
+    <p class="hint">관리자 키는 Cloudflare Pages 프로젝트의 환경변수 ADMIN_SETUP_KEY 값과 같아야 합니다. 계정을 만들고 나면 아이디/비밀번호를 가족에게 직접 알려주세요.</p>
+  </div>
+
+<script>
+  const form = document.getElementById('create-form');
+  const msg = document.getElementById('msg');
+  const btn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = '';
+    msg.className = 'msg';
+    btn.disabled = true;
+    btn.textContent = '만드는 중...';
+
+    const setupKey = document.getElementById('setup-key').value;
+    const username = document.getElementById('username').value.trim();
+    const displayName = document.getElementById('display-name').value.trim();
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Setup-Key': setupKey
+        },
+        body: JSON.stringify({ username, password, displayName })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.textContent = data.error || '계정 생성에 실패했습니다.';
+        msg.className = 'msg error';
+        return;
+      }
+      msg.textContent = `'${displayName}' 계정이 만들어졌습니다. 아이디: ${username}`;
+      msg.className = 'msg success';
+      document.getElementById('username').value = '';
+      document.getElementById('display-name').value = '';
+      document.getElementById('password').value = '';
+    } catch (err) {
+      msg.textContent = '서버에 연결할 수 없습니다.';
+      msg.className = 'msg error';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '계정 만들기';
+    }
+  });
+</script>
+</body>
+</html>
