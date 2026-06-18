@@ -24,7 +24,7 @@ export async function handleFiles(request, env) {
     params.push(uploader);
   }
 
-  query += ' ORDER BY created_at DESC LIMIT 1000';
+  query += ' ORDER BY created_at ASC LIMIT 1000';
 
   const { results } = await env.DB.prepare(query).bind(...params).all();
   return jsonResponse({ files: results });
